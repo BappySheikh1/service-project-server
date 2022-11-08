@@ -16,8 +16,10 @@ const uri = process.env.MONGODB_USER_URI;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run(){
-  const userCollection =client.db('assignmrntProject').collection('users')
   const pictureCollection =client.db('assignmentProject').collection('pictures')
+
+  const userCollection =client.db('assignmrntProject').collection('users')
+  const userPostCollection =client.db('assignmrntProject').collection('usersPost')
 
   // get pictureCollection data
   app.get('/pictures',async(req,res)=>{
@@ -51,7 +53,21 @@ app.get('/services/:id',async(req,res)=>{
   res.send(result)
 })
 
+// Post method Review start
+ app.get('/review',async(req,res)=>{
+  const query={}
+  const cursor= userPostCollection.find(query)
+  const reviewer=await cursor.toArray()
+  res.send(reviewer)
+ })
 
+ app.post('/review',async(req,res)=>{
+  const user =req.body
+  const reviewPost= await userPostCollection.insertOne(user)
+  res.send(reviewPost)
+ })
+
+//  Post method review end
 
 }
 run().catch(err => console.log(err))
