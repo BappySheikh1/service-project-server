@@ -55,12 +55,13 @@ app.get('/services/:id',async(req,res)=>{
 
 // Post method Review start
  app.get('/review',async(req,res)=>{
-  let query={}
-  if(req?.query?.email){
-    query={
-      email: req?.query?.email
-    }
+ let query={}
+ if(req.query.email){
+  query={
+    user_email : req.query.email
   }
+ }
+ console.log(query);
   const cursor= userPostCollection.find(query)
   const reviewer=await cursor.toArray()
   res.send(reviewer)
