@@ -67,6 +67,19 @@ app.get('/services',async (req,res)=>{
   res.send(services)
 })
 
+// post servicePost data
+app.post('/servicePost',async (req,res)=>{
+  const user =req.body
+  const AddServices=await userCollection.insertOne(user)
+  res.send(AddServices)
+})
+app.get('/servicePost',async(req,res)=>{
+  const query ={}
+  const cursor= userCollection.find(query)
+  const result=await cursor.toArray()
+  res.send(result)
+})
+
 // get single data
 app.get('/services/:id',async(req,res)=>{
   const id =req.params.id;
