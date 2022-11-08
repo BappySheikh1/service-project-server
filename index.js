@@ -11,19 +11,20 @@ const port =process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
 
+// Jwt token
 const jwtVerify =(req,res,next)=>{
- const authHeaders=req.headers.authorization
- if(!authHeaders){
-  return res.status(401).send({message:'unAuthorization access'})
- }
- const token =authHeaders.split(' ')[1]
- jwt.verify(token,process.env.ACCESS_JWT_TOKEN,function(err,decoded){
-  if(err){
-    return res.status(403).send({message:'Forbidden access'})
+  const authHeader = req.headers.authorization
+  if(!authHeader){
+      return res.status(401).send({message: 'unauthorization access'})
   }
-  req.decoded =decoded
-  next()
- })
+  const token =authHeader.split(' ')[1]
+  jwt.verify(token, process.env.ACCESS_JWT_TOKEN,function(err,decoded){
+      if(err){
+          return  res.status(403).send({message: 'Forbidden access'})
+      }
+      req.decoded =decoded
+      next();
+  })
 }
 
 const uri = process.env.MONGODB_USER_URI;
@@ -38,7 +39,7 @@ async function run(){
   // jwt token
   app.post('/jwt', (req,res)=>{
     const user=req.body  
-    const token=jwt.sign(user,process.env.ACCESS_JWT_TOKEN,{expiresIn:'1d'})
+    const token=jwt.sign(user,process.env.ACCESS_JWT_TOKEN,{expiresIn:'1h'})
     res.send({token})
    })
 
@@ -75,18 +76,14 @@ app.get('/services/:id',async(req,res)=>{
 })
 
 // Post method Review start
- app.get('/review',jwtVerify,async(req,res)=>{
-  const decoded=req.decoded
-  if(decoded.user_email !== req.query.email){
-    return res.status(403).send({message:'Forbidden access'})
-  } 
+ app.get('/review',async(req,res)=>{
+ 
  let query={}
  if(req.query.email){
   query={
-    user_email : req.query.email
+    email : req.query.email
   }
  }
- console.log(query);
   const cursor= userPostCollection.find(query)
   const reviewer=await cursor.toArray()
   res.send(reviewer)
@@ -111,6 +108,20 @@ app.get('/services/:id',async(req,res)=>{
   res.send(reviewId)
  })
 
+ //updateta
+ app.put('/review/:id',async (req,res)=>{
+  const id=req.params.id
+  const filter={_id: ObjectId(id)}
+  const user=req.body
+  const updateUser = {
+    $set: {
+      user_name: user.name,
+      description :user.message
+    },
+  };
+  const result=await userPostCollection.updateMany(filter,updateUser)
+  res.send(result)
+ }) 
 //  Post method review end
 
 }
