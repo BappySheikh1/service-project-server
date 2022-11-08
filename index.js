@@ -55,7 +55,12 @@ app.get('/services/:id',async(req,res)=>{
 
 // Post method Review start
  app.get('/review',async(req,res)=>{
-  const query={}
+  let query={}
+  if(req?.query?.email){
+    query={
+      email: req?.query?.email
+    }
+  }
   const cursor= userPostCollection.find(query)
   const reviewer=await cursor.toArray()
   res.send(reviewer)
@@ -65,6 +70,19 @@ app.get('/services/:id',async(req,res)=>{
   const user =req.body
   const reviewPost= await userPostCollection.insertOne(user)
   res.send(reviewPost)
+ })
+
+ app.get('/review/:id',async(req,res)=>{
+  const id =req.params.id
+  const query={_id: ObjectId(id)}
+  const reviewId=await userPostCollection.findOne(query)
+  res.send(reviewId)
+ })
+ app.delete('/review/:id',async(req,res)=>{
+  const id =req.params.id
+  const query={_id: ObjectId(id)}
+  const reviewId=await userPostCollection.deleteOne(query)
+  res.send(reviewId)
  })
 
 //  Post method review end
