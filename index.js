@@ -17,6 +17,15 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run(){
   const userCollection =client.db('assignmrntProject').collection('users')
+  const pictureCollection =client.db('assignmentProject').collection('pictures')
+
+  // get pictureCollection data
+  app.get('/pictures',async(req,res)=>{
+    const query={}
+    const cursor = pictureCollection.find(query)
+    const pictures=await cursor.toArray()
+    res.send(pictures)
+  })
 
   // get database services data limit 
 app.get('/services/limit',async (req,res)=>{
