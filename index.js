@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const jwt=require('jsonwebtoken');
 const app = express();
 const port =process.env.PORT || 5000;
 
@@ -10,7 +11,20 @@ const port =process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
 
-
+const jwtVerify =(req,res,next)=>{
+ const authHeaders=req.headers.authorization
+ if(!authHeaders){
+  return res.status(401).send({message:'unAuthorization access'})
+ }
+ const token =authHeaders.split(' ')[1]
+ jwt.verify(token,process.env.ACCESS_JWT_TOKEN,function(err,decoded){
+  if(err){
+    return res.status(403).send({message:'Forbidden access'})
+  }
+  req.decoded =decoded
+  next()
+ })
+}
 
 const uri = process.env.MONGODB_USER_URI;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -20,6 +34,13 @@ async function run(){
 
   const userCollection =client.db('assignmrntProject').collection('users')
   const userPostCollection =client.db('assignmrntProject').collection('usersPost')
+
+  // jwt token
+  app.post('/jwt', (req,res)=>{
+    const user=req.body  
+    const token=jwt.sign(user,process.env.ACCESS_JWT_TOKEN,{expiresIn:'1d'})
+    res.send({token})
+   })
 
   // get pictureCollection data
   app.get('/pictures',async(req,res)=>{
@@ -54,7 +75,11 @@ app.get('/services/:id',async(req,res)=>{
 })
 
 // Post method Review start
- app.get('/review',async(req,res)=>{
+ app.get('/review',jwtVerify,async(req,res)=>{
+  const decoded=req.decoded
+  if(decoded.user_email !== req.query.email){
+    return res.status(403).send({message:'Forbidden access'})
+  } 
  let query={}
  if(req.query.email){
   query={
