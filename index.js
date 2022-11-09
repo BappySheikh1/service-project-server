@@ -27,7 +27,7 @@ function verifyJWT(req, res, next){
 
   jwt.verify(token, process.env.ACCESS_JWT_TOKEN, function(err, decoded){
       if(err){
-          return res.status(403).send({message: 'Forbidden access'});
+          return res?.status(403).send({message: 'Forbidden access'});
       }
       req.decoded = decoded;
       next();
@@ -37,11 +37,12 @@ function verifyJWT(req, res, next){
 async function run(){
   const userCollection =client.db('assignmrntProject').collection('Services') 
   const userPostCollection =client.db('assignmrntProject').collection('usersPost')
+
   const pictureCollection =client.db('assignmentProject').collection('pictures')
 
   // jwt token
   app.post('/jwt', (req, res) =>{
-    const user = req.body;
+    const user = req?.body;
     // console.log(user);
     const token = jwt.sign(user, process.env.ACCESS_JWT_TOKEN, { expiresIn:'1d'})
     res.send({token})
@@ -73,7 +74,7 @@ app.get('/services',async (req,res)=>{
 
 // post servicePost data
 app.post('/servicePost',async (req,res)=>{
-  const user =req.body
+  const user =req?.body
   const AddServices=await userCollection.insertOne(user)
   res.send(AddServices)
 })
@@ -88,11 +89,17 @@ app.get('/services/:id',async(req,res)=>{
 
 // Post method Review start
  app.get('/review',async(req,res)=>{
-  console.log(req.headers.authorization);
+  const decoded=req.decoded
+  console.log(decoded);
+  // console.log(decoded);
+  // console.log(req?.query?.email);
+  // if(decoded.email != req?.query?.email){
+  //   res.status(403).send({message: 'Forbidden access'});
+  // }
  let query={}
- if(req.query.email){
+ if(req?.query?.email){
   query={
-    email : req.query.email
+    email : req?.query?.email
   }
  }
   const cursor= userPostCollection.find(query)
@@ -101,15 +108,15 @@ app.get('/services/:id',async(req,res)=>{
  })
 
  app.post('/review',async(req,res)=>{
-  const user =req.body
+  const user =req?.body
   const reviewPost= await userPostCollection.insertOne(user)
   res.send(reviewPost)
  })
 
  app.get('/review/:id',async(req,res)=>{
-  const id =req.params.id
+  const id =req?.params?.id
   const query={_id: ObjectId(id)}
-  const reviewId=await userPostCollection.findOne(query)
+  const reviewId=await userPostCollection.findOne(query).sort({time: -1});
   res.send(reviewId)
  })
  app.delete('/review/:id',async(req,res)=>{
@@ -121,13 +128,13 @@ app.get('/services/:id',async(req,res)=>{
 
  //updateta
  app.put('/review/:id',async (req,res)=>{
-  const id=req.params.id
+  const id=req?.params?.id
   const filter={_id: ObjectId(id)}
-  const user=req.body
+  const user=req?.body
   const updateUser = {
     $set: {
-      user_name: user.name,
-      description :user.message
+      user_name: user?.name,
+      description :user?.message
     },
   };
   const result=await userPostCollection.updateMany(filter,updateUser)
