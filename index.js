@@ -12,20 +12,6 @@ app.use(cors())
 app.use(express.json())
 
 // Jwt token
-const jwtVerify =(req,res,next)=>{
-  const authHeader = req.headers.authorization
-  if(!authHeader){
-      return res.status(401).send({message: 'unauthorization access'})
-  }
-  const token =authHeader.split(' ')[1]
-  jwt.verify(token, process.env.ACCESS_JWT_TOKEN,function(err,decoded){
-      if(err){
-          return  res.status(403).send({message: 'Forbidden access'})
-      }
-      req.decoded =decoded
-      next();
-  })
-}
 
 const uri = process.env.MONGODB_USER_URI;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -34,14 +20,13 @@ async function run(){
   const pictureCollection =client.db('assignmentProject').collection('pictures')
 
   const userCollection =client.db('assignmrntProject').collection('users')
+
+  const AddServiceCollection =client.db('assignmrntProject').collection('AddService')
+
   const userPostCollection =client.db('assignmrntProject').collection('usersPost')
 
   // jwt token
-  app.post('/jwt', (req,res)=>{
-    const user=req.body  
-    const token=jwt.sign(user,process.env.ACCESS_JWT_TOKEN,{expiresIn:'1h'})
-    res.send({token})
-   })
+
 
   // get pictureCollection data
   app.get('/pictures',async(req,res)=>{
@@ -70,12 +55,12 @@ app.get('/services',async (req,res)=>{
 // post servicePost data
 app.post('/servicePost',async (req,res)=>{
   const user =req.body
-  const AddServices=await userCollection.insertOne(user)
+  const AddServices=await AddServiceCollection.insertOne(user)
   res.send(AddServices)
 })
 app.get('/servicePost',async(req,res)=>{
   const query ={}
-  const cursor= userCollection.find(query)
+  const cursor= AddServiceCollection.find(query)
   const result=await cursor.toArray()
   res.send(result)
 })
@@ -90,7 +75,6 @@ app.get('/services/:id',async(req,res)=>{
 
 // Post method Review start
  app.get('/review',async(req,res)=>{
- 
  let query={}
  if(req.query.email){
   query={
