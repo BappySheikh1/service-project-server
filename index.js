@@ -19,9 +19,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run(){
   const pictureCollection =client.db('assignmentProject').collection('pictures')
 
-  const userCollection =client.db('assignmrntProject').collection('users')
+  const userCollection =client.db('assignmrntProject').collection('Services')
 
-  const AddServiceCollection =client.db('assignmrntProject').collection('AddService')
+ 
 
   const userPostCollection =client.db('assignmrntProject').collection('usersPost')
 
@@ -55,14 +55,8 @@ app.get('/services',async (req,res)=>{
 // post servicePost data
 app.post('/servicePost',async (req,res)=>{
   const user =req.body
-  const AddServices=await AddServiceCollection.insertOne(user)
+  const AddServices=await userCollection.insertOne(user)
   res.send(AddServices)
-})
-app.get('/servicePost',async(req,res)=>{
-  const query ={}
-  const cursor= AddServiceCollection.find(query)
-  const result=await cursor.toArray()
-  res.send(result)
 })
 
 // get single data
