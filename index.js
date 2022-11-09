@@ -19,7 +19,6 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 // Jwt token
 function verifyJWT(req, res, next){
   const authHeader = req.headers.authorization;
-
   if(!authHeader){
       return res.status(401).send({message: 'unauthorized access'});
   }
@@ -60,7 +59,7 @@ async function run(){
 app.get('/services/limit',async (req,res)=>{
   const query={}
   const cursor = userCollection.find(query)
-  const services=await cursor.limit(3).toArray()
+  const services=await cursor.limit(3).skip(3 + 1).toArray()
   res.send(services)
 })
 
@@ -88,14 +87,12 @@ app.get('/services/:id',async(req,res)=>{
 })
 
 // Post method Review start
- app.get('/review',async(req,res)=>{
+ app.get('/review',verifyJWT,async(req,res)=>{
   const decoded=req.decoded
-  console.log(decoded);
-  // console.log(decoded);
   // console.log(req?.query?.email);
-  // if(decoded.email != req?.query?.email){
-  //   res.status(403).send({message: 'Forbidden access'});
-  // }
+  if(decoded.email != req?.query?.email){
+    res.status(403).send({message: 'Forbidden access'});
+  }
  let query={}
  if(req?.query?.email){
   query={
@@ -116,10 +113,10 @@ app.get('/services/:id',async(req,res)=>{
  app.get('/review/:id',async(req,res)=>{
   const id =req?.params?.id
   const query={_id: ObjectId(id)}
-  const reviewId=await userPostCollection.findOne(query).sort({time: -1});
+  const reviewId=await userPostCollection.findOne(query)
   res.send(reviewId)
  })
- app.delete('/review/:id',async(req,res)=>{
+ app.delete('/review/:id',verifyJWT,async(req,res)=>{
   const id =req.params.id
   const query={_id: ObjectId(id)}
   const reviewId=await userPostCollection.deleteOne(query)
@@ -127,7 +124,7 @@ app.get('/services/:id',async(req,res)=>{
  })
 
  //updateta
- app.put('/review/:id',async (req,res)=>{
+ app.put('/review/:id',verifyJWT,async (req,res)=>{
   const id=req?.params?.id
   const filter={_id: ObjectId(id)}
   const user=req?.body
